@@ -1,13 +1,14 @@
 <?php
 
-use App\Http\Controllers\AdminReserController;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\LoginController;
-use App\Http\Controllers\ReservasiController;
 use App\Http\Controllers\BuktiController;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\GaleriController;
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReservasiController;
+use App\Http\Controllers\AdminReserController;
 
 
 
@@ -79,6 +80,10 @@ Route::post('/reservasi', [ReservasiController::class, 'store'])->name('reservas
 Route::get('/bukti/create', [BuktiController::class, 'create'])->name('bukti.create');
 Route::post('/bukti', [BuktiController::class, 'store'])->name('bukti.store');
 
+
+Route::get('/home', [OrderController::class, 'index']);
+Route::post('/checkout', [OrderController::class, 'checkout']);
+Route::get('/invoice/{id}', [OrderController::class, 'invoice']);
 
 
 
