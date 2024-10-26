@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordMail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+
 
 
 class LoginController extends Controller
@@ -50,8 +52,8 @@ class LoginController extends Controller
             ]
         );
 
-        // Logging untuk memastikan email disimpan dengan benar
-        Log::info('Email yang disimpan: ' . $request->email);
+        Log::info("Email yang disimpan: {$request->email}");
+        Log::info("Token yang disimpan: {$token}");
         Log::info('Token yang disimpan: ' . $token);
 
         Mail::to($request->email)->send(new ResetPasswordMail($token));
@@ -72,7 +74,7 @@ class LoginController extends Controller
             'password' => 'required|min:6'
         ], $customMessage);
 
-        // Logging token yang diterima
+        Log::info("Token yang diterima: {$request->token}");
         Log::info('Token yang diterima: ' . $request->token);
 
         $token = PasswordResetToken::where('token', $request->token)->first();
@@ -125,32 +127,6 @@ class LoginController extends Controller
 
         return view('pages.auth.validasi-token', compact('token'));
     }
-    public function auth(Request $request)
-    {
-
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
-
-        if (empty($request->email) || empty($request->password)) {
-            return back()->withErrors([
-                'kosong' => 'Email dan password harus diisi'
-            ]);
-        }
-
-
-        $credentials = $request->only('email', 'password');
-
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect('admin');
-        }
-
-        return back()->withErrors([
-            'loginError' => 'Email atau Password salah'
-        ]);
-    }
 
     public function logout()
     {
@@ -188,5 +164,22 @@ class LoginController extends Controller
             return redirect()->route('login')->with('failed', 'Email atau Password Salah');
         }
     }
-    
+
+
+    public function auth(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+
+            if ($user->role === 'admin') {
+                return redirect()->route('admin')->with('success', 'Selamat datang di halaman Admin!');
+            } else {
+                return redirect()->route('user.index')->with('success', 'Login berhasil!');
+            }
+        }
+
+        return redirect()->back()->withErrors(['error' => 'Login gagal, periksa email dan password Anda.']);
+    }
 }
